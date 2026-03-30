@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Customer Strategy | Radyant</title>
+    <link
+      rel="icon"
+      type="image/jpeg"
+      href="https://radyant.io/wp-content/uploads/2023/08/Radyant-Favicon.jpg"
+    />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family:
+          "Inter",
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        background: #f8f7fc;
+        color: #1a1a2e;
+      }
+      .viewport {
+        width: 100vw;
+        height: 100vh;
+        overflow: auto;
+      }
+      .container {
+        width: 5400px;
+        height: 4800px;
+        position: relative;
+        padding-top: 80px;
+      }
+      .controls {
+        position: fixed;
+        top: 16px;
+        left: 16px;
+        z-index: 100;
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        background: white;
+        padding: 8px 14px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(123, 85, 244, 0.1);
+      }
+      .controls button {
+        width: 32px;
+        height: 32px;
+        border: 1px solid #e0daf5;
+        border-radius: 6px;
+        background: white;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #7b55f4;
+      }
+      .controls button:hover {
+        background: #f2eefe;
+      }
+      .zoom-level {
+        font-size: 12px;
+        color: #666;
+        min-width: 40px;
+        text-align: center;
+      }
+      .title-bar {
+        position: fixed;
+        top: 16px;
+        left: 50%;
+        transform: translateX(-50%);
+        z-index: 100;
+        background: white;
+        padding: 10px 24px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(123, 85, 244, 0.1);
+        font-size: 15px;
+        font-weight: 600;
+        color: #7b55f4;
+      }
+      .node {
+        position: absolute;
+        border-radius: 12px;
+        padding: 16px 20px;
+        font-size: 13px;
+        line-height: 1.4;
+        box-shadow: 0 1px 6px rgba(0, 0, 0, 0.05);
+        z-index: 2;
+        max-width: 300px;
+        min-width: 180px;
+        transition:
+          box-shadow 0.15s,
+          transform 0.15s;
+      }
+      .node:hover {
+        box-shadow: 0 3px 16px rgba(123, 85, 244, 0.15);
+        transform: translateY(-1px);
+        z-index: 10;
+      }
+      .node-title {
+        font-weight: 700;
+        font-size: 13.5px;
+        margin-bottom: 4px;
+      }
+      .node-title:last-child {
+        margin-bottom: 0;
+      }
+      .node-sub {
+        font-size: 12px;
+        opacity: 0.75;
+        line-height: 1.35;
+        margin-top: 3px;
+      }
+      .node-callout {
+        display: block;
+        margin-top: 10px;
+        font-weight: 700;
+        opacity: 1;
+        font-size: 12px;
+      }
+      .node ul,
+      .node ol {
+        padding-left: 16px;
+        margin-top: 4px;
+      }
+      .node li {
+        margin-top: 3px;
+        line-height: 1.35;
+      }
+      .node li ul {
+        margin-top: 2px;
+        margin-bottom: 2px;
+      }
+      .node li ul li {
+        font-size: 11px;
+        opacity: 0.85;
+      }
+
+      .n-start {
+        background: #7b55f4;
+        color: white;
+        border-radius: 40px;
+        text-align: center;
+        font-weight: 700;
+        font-size: 15px;
+        min-width: 240px;
+      }
+      .n-end {
+        background: #7a9c59;
+        color: white;
+        border-radius: 40px;
+        text-align: center;
+        font-weight: 600;
+      }
+      .n-decision {
+        background: #f2eefe;
+        border: 2px solid #7b55f4;
+        text-align: center;
+        font-weight: 600;
+      }
+      .n-decision .node-title {
+        color: #5a3bc2;
+      }
+      .n-decision .node-sub {
+        color: #5a3bc2;
+      }
+      .n-green {
+        background: #e8f5e0;
+        border: 2px solid #7a9c59;
+      }
+      .n-green .node-title {
+        color: #4a6b35;
+      }
+      .n-red {
+        background: #fde8e7;
+        border: 2px solid #e31f11;
+      }
+      .n-red .node-title {
+        color: #a51710;
+      }
+      .n-orange {
+        background: #fff3e0;
+        border: 2px solid #ff9800;
+      }
+      .n-orange .node-title {
+        color: #e65100;
+      }
+      .n-blue {
+        background: #e8f4f8;
+        border: 2px solid #0693e3;
+      }
+      .n-blue .node-title {
+        color: #055a8a;
+      }
+      .n-purple {
+        background: #f2eefe;
+        border: 2px solid #9b51e0;
+      }
+      .n-purple .node-title {
+        color: #6a1b9a;
+      }
+      .n-principle {
+        background: #2d1b69;
+        color: white;
+        border: none;
+      }
+      .n-principle .node-title {
+        color: #c9b8f8;
+      }
+      .n-neutral {
+        background: white;
+        border: 2px solid #e0daf5;
+      }
+
+      svg.lines {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        z-index: 1;
+        pointer-events: none;
+      }
+      .edge-label {
+        font-family: "Inter", sans-serif;
+        font-size: 11px;
+        font-weight: 600;
+        text-anchor: middle;
+        dominant-baseline: central;
+      }
+
+      .legend {
+        position: fixed;
+        bottom: 16px;
+        left: 16px;
+        z-index: 100;
+        background: white;
+        padding: 14px 18px;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(123, 85, 244, 0.1);
+        font-size: 11px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+      }
+      .legend-item {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+      }
+      .legend-color {
+        width: 16px;
+        height: 12px;
+        border-radius: 3px;
+        flex-shrink: 0;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="controls">
+      <button onclick="zoomOut()">−</button>
+      <span class="zoom-level" id="zoomLevel">80%</span>
+      <button onclick="zoomIn()">+</button>
+      <button
+        onclick="resetView()"
+        style="font-size: 12px; width: auto; padding: 0 10px"
+      >
+        Reset
+      </button>
+    </div>
+
+    <div class="title-bar">Customer Strategy – Decision Flowchart</div>
+
+    <div class="legend">
+      <div style="font-weight: 700; margin-bottom: 3px; color: #7b55f4">
+        Legende
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          style="background: white; border: 1px solid #e0daf5"
+        ></div>
+        Meeting-Agendapunkt
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          style="background: #f2eefe; border: 1px solid #7b55f4"
+        ></div>
+        Entscheidungsfrage
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          style="background: #e8f5e0; border: 1px solid #7a9c59"
+        ></div>
+        On Track / Positiv
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          style="background: #fde8e7; border: 1px solid #e31f11"
+        ></div>
+        Off Track – Analyse
+      </div>
+      <div class="legend-item">
+        <div
+          class="legend-color"
+          style="background: #fff3e0; border: 1px solid #ff9800"
+        ></div>
+        Grundlage fehlt / Lücke
+      </div>
+    </div>
+
+    <div class="viewport" id="viewport">
+      <div class="container" id="container">
+        <svg class="lines" id="svgLines" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <marker
+              id="aG"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0,8 3,0 6" fill="#c4b5e8" />
+            </marker>
+            <marker
+              id="aGr"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0,8 3,0 6" fill="#7a9c59" />
+            </marker>
+            <marker
+              id="aR"
+              markerWidth="8"
+              markerHeight="6"
+              refX="7"
+              refY="3"
+              orient="auto"
+            >
+              <polygon points="0 0,8 3,0 6" fill="#e31f11" />
+            </marker>
+          </defs>
+        </svg>
+
+        <!-- ===== CENTER COLUMN x=2640 ===== -->
+
+        <div
+          class="node n-start"
+          id="s"
+          style="
+            left: 2580px;
+            top: 100px;
+            min-width: 380px;
+            max-width: 380px;
+            border-radius: 20px;
+          "
+        >
+          <div class="node-title" style="font-size: 16px">
+            Customer Strategy
+          </div>
+          <ol
+            class="node-sub"
+            style="opacity: 0.85; margin-top: 6px; text-align: left"
+          >
+            <li>
+              Die aktuelle Kundenstrategie strukturiert bewerten und
+              Herausforderungen identifizieren.
+            </li>
+            <li>Als konkreter Gesprächsrahmen für Kunden-Meetings.</li>
+          </ol>
+        </div>
+
+        <div
+          class="node n-neutral"
+          id="a1"
+          style="left: 2610px; top: 260px; min-width: 320px"
+        >
+          <div class="node-title">Leads / Revenue / Purchases</div>
+          <div class="node-sub">
+            Einstieg für Kundenmeetings: Immer zuerst über die wichtigsten
+            Business-KPIs sprechen.
+          </div>
+        </div>
+
+        <!-- ===== GOALS ===== -->
+
+        <div
+          class="node n-decision"
+          id="d-goal"
+          style="left: 2620px; top: 400px; min-width: 300px"
+        >
+          <div class="node-title">Haben wir konkrete Ziele?</div>
+          <div class="node-sub">Monatsziele, Quartalsziele etc.?</div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="goal-no"
+          style="left: 2100px; top: 540px; max-width: 300px"
+        >
+          <div class="node-title">Keine konkreten Ziele</div>
+          <div class="node-sub">
+            Nächstbesseres Ziel mit Kunden abstimmen: z. B. MoM-Wachstum als
+            Ersatz-Benchmark. Mittelfristig genaue Ziele definieren.<span
+              class="node-callout"
+              >Wichtig: Ziele so wählen, dass Zielerreichung auf
+              Radyant-Maßnahmen zurückführbar ist.</span
+            >
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="goal-yes"
+          style="left: 3100px; top: 540px; max-width: 220px"
+        >
+          <div class="node-title">Ziele vorhanden ✓</div>
+        </div>
+
+        <!-- ===== GOAL RELEVANCE ===== -->
+
+        <div
+          class="node n-decision"
+          id="d-relevance"
+          style="left: 2600px; top: 740px; min-width: 340px"
+        >
+          <div class="node-title">Sind die Ziele weiterhin relevant?</div>
+          <div class="node-sub">
+            Hat sich an Prioritäten, Strategie, Zielgruppe, Positionierung oder
+            Marktlage etwas geändert?
+          </div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="rel-no"
+          style="left: 2060px; top: 910px; max-width: 320px"
+        >
+          <div class="node-title">Ziele nicht mehr relevant</div>
+          <div class="node-sub">
+            Neue Ziele gemeinsam mit dem Kunden definieren. Neue strategische
+            Richtung verstehen und in alle Maßnahmen einfließen lassen.<span
+              class="node-callout"
+              >Wichtig: Neue Ziele so definieren, dass Zielerreichung auf
+              Radyant-Maßnahmen zurückführbar ist.</span
+            >
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="rel-yes"
+          style="left: 3100px; top: 910px; max-width: 220px"
+        >
+          <div class="node-title">Ziele weiterhin relevant ✓</div>
+        </div>
+
+        <!-- ===== REPORTING ===== -->
+
+        <div
+          class="node n-decision"
+          id="d-report"
+          style="left: 2540px; top: 1130px; min-width: 460px"
+        >
+          <div class="node-title">
+            Haben wir vollständigen Reporting-Zugriff?
+          </div>
+          <div class="node-sub" style="text-align: left">
+            Vollständiges Reporting umfasst:
+            <ul>
+              <li>
+                KPIs direkt einsehbar: Leads, Revenue/Purchases, Sales CVRs (im
+                Monatsverlauf und ggf. wöchentlich und täglich)
+              </li>
+              <li>
+                Mögliche Aufschlüsselungen/Charts:
+                <ul style="margin-top: 2px">
+                  <li>
+                    Leads basierend auf HubSpot-Attribution (Ursprüngliche &amp;
+                    letzte Traffic-Quelle) und Self-Reported und/oder
+                    Sales-Reported Attribution
+                  </li>
+                  <li>Leads mit/ohne Startseite als Landing Page</li>
+                  <li>Leads nach Landing Pages</li>
+                  <li>Leads je Cluster (URL-Pfad)</li>
+                  <li>Leads je Lead-Magnet (Landing Page oder Formular)</li>
+                  <li>AI-Search-Leads</li>
+                </ul>
+              </li>
+            </ul>
+          </div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="rep-no"
+          style="left: 2050px; top: 1280px; max-width: 250px"
+        >
+          <div class="node-title">Kein Reporting</div>
+          <div class="node-sub">
+            Reporting einfordern und Attribution-Setup aufbauen. Klären: Was
+            brauchen wir konkret (siehe Kriterien oben), bis wann?
+          </div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="rep-partial"
+          style="left: 2430px; top: 1280px; max-width: 250px"
+        >
+          <div class="node-title">Reporting unvollständig</div>
+          <div class="node-sub">
+            Keine Zahlen zeigen, weil das ein falsches Signal wäre.
+            Vollständiges Reporting-Setup vorantreiben.
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="rep-yes"
+          style="left: 2870px; top: 1280px; max-width: 240px"
+        >
+          <div class="node-title">Reporting vorhanden ✓</div>
+          <div class="node-sub">Alle Kriterien oben erfüllt.</div>
+        </div>
+
+        <!-- ===== ON/OFF TRACK ===== -->
+
+        <div
+          class="node n-decision"
+          id="d-track"
+          style="left: 2620px; top: 1500px; min-width: 300px"
+        >
+          <div class="node-title">Sind wir On Track oder Off Track?</div>
+          <div class="node-sub">IST vs. SOLL (oder MoM-Trend)</div>
+        </div>
+
+        <!-- ===== OFF TRACK PATH (LEFT) ===== -->
+
+        <div
+          class="node n-red"
+          id="off1"
+          style="left: 2000px; top: 1680px; max-width: 300px"
+        >
+          <div class="node-title">⚠ Off Track</div>
+          <div class="node-sub">
+            Alles andere ist zweitrangig. Fokus auf die Ursache.
+          </div>
+        </div>
+
+        <div
+          class="node n-red"
+          id="off2"
+          style="left: 2000px; top: 1860px; max-width: 300px"
+        >
+          <div class="node-title">Ursachenanalyse</div>
+          <div class="node-sub">
+            Woran liegt es? Was funktioniert nicht wie gedacht? Externe Faktoren
+            (Markt, Saisonalität)?
+          </div>
+        </div>
+
+        <div
+          class="node n-decision"
+          id="off-d1"
+          style="left: 2000px; top: 2040px; max-width: 300px"
+        >
+          <div class="node-title">Richtiger Ansatz, braucht nur mehr Zeit?</div>
+          <div class="node-sub">
+            Ehrlich bewerten – nicht den Kunden beruhigen.
+          </div>
+        </div>
+
+        <div
+          class="node n-red"
+          id="off4"
+          style="left: 1720px; top: 2220px; max-width: 270px"
+        >
+          <div class="node-title">Ansatz falsch → Anpassen</div>
+          <div class="node-sub">
+            Aktuelle Maßnahmen kritisch hinterfragen. Andere Initiativen,
+            Deliverables, Schwerpunkte, Content-Themen nötig?
+          </div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="off3"
+          style="left: 2230px; top: 2220px; max-width: 270px"
+        >
+          <div class="node-title">Proxy-Ebene prüfen</div>
+          <div class="node-sub">
+            Early Signals of Success:
+            <ul>
+              <li>Traffic auf relevante Seiten</li>
+              <li>Ranking-Entwicklungen</li>
+              <li>AI Visibility (Citations, Brand Mentions)</li>
+              <li>Indexierung (Search Console)</li>
+            </ul>
+            <em style="display: block; margin-top: 6px"
+              >Gezielt als Beleg, nicht als Standard-Reporting.</em
+            >
+          </div>
+        </div>
+
+        <div
+          class="node n-red"
+          id="off5"
+          style="left: 1900px; top: 2470px; max-width: 340px"
+        >
+          <div class="node-title">Alle Maßnahmen bewerten</div>
+          <div class="node-sub">
+            Content-Plan, Initiativen, Deliverables, technische Maßnahmen –
+            alles prüfen und ggf. anpassen. Nicht nur Content, sondern gesamtes
+            Maßnahmen-Set.
+          </div>
+        </div>
+
+        <!-- ===== ON TRACK PATH (RIGHT) ===== -->
+
+        <div
+          class="node n-green"
+          id="on1"
+          style="left: 3200px; top: 1680px; min-width: 300px; max-width: 300px"
+        >
+          <div class="node-title">✓ On Track</div>
+          <div class="node-sub">
+            Maßnahmen führen zu Ergebnissen. Aber: Nicht einfach weitermachen
+            ohne zu hinterfragen.
+          </div>
+        </div>
+
+        <div
+          class="node n-decision"
+          id="on-d0"
+          style="left: 3200px; top: 1860px; min-width: 300px; max-width: 300px"
+        >
+          <div class="node-title">
+            Zielerreichung auf Radyant zurückführbar?
+          </div>
+          <div class="node-sub">
+            Ist unser Impact klar erkennbar, oder liegt der Erfolg an externen
+            Faktoren (z. B. Paid-Social-Kampagnen, Saisonalität)?
+          </div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="on-attr-no"
+          style="left: 2930px; top: 2040px; max-width: 270px"
+        >
+          <div class="node-title">Impact unklar</div>
+          <div class="node-sub">
+            Attribution klären. Eigenen Beitrag messbar machen.
+            Reporting-Aufschlüsselung anpassen, damit Radyant-Impact sichtbar
+            wird.
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="on-attr-yes"
+          style="left: 3450px; top: 2040px; max-width: 220px"
+        >
+          <div class="node-title">Impact klar erkennbar ✓</div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="on2"
+          style="left: 3200px; top: 2220px; min-width: 300px; max-width: 300px"
+        >
+          <div class="node-title">Was genau treibt den Erfolg?</div>
+          <div class="node-sub">
+            Welche Deliverables, Content Pieces, Maßnahmen etc. bringen die
+            Ergebnisse? Können wir das konkret benennen?
+          </div>
+        </div>
+
+        <div
+          class="node n-decision"
+          id="on-d1"
+          style="left: 3200px; top: 2400px; min-width: 300px; max-width: 300px"
+        >
+          <div class="node-title">Erfolgstreiber klar identifiziert?</div>
+        </div>
+
+        <div
+          class="node n-orange"
+          id="on4"
+          style="left: 2960px; top: 2580px; max-width: 270px"
+        >
+          <div class="node-title">Erfolgstreiber unklar</div>
+          <div class="node-sub">
+            ⚠ "Es läuft" reicht nicht. Reporting/Attribution verbessern.
+            Granularere Aufschlüsselung aufbauen.
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="on3"
+          style="left: 3410px; top: 2580px; max-width: 270px"
+        >
+          <div class="node-title">Learnings in Planung übernehmen</div>
+          <div class="node-sub">
+            Was funktioniert → verstärken. Dieses Learning in die weitere
+            Planung einfließen lassen.
+          </div>
+        </div>
+
+        <div
+          class="node n-green"
+          id="on5"
+          style="left: 3160px; top: 2760px; max-width: 340px"
+        >
+          <div class="node-title">Geplante Maßnahmen prüfen</div>
+          <div class="node-sub">
+            Content-Plan: Passt er zu den Erfolgstreibern? Initiativen und
+            Deliverables: Zahlen sie auf das Ziel ein?
+          </div>
+        </div>
+
+        <div
+          class="node n-purple"
+          id="on6"
+          style="
+            left: 2430px;
+            top: 2930px;
+            min-width: 680px;
+            max-width: 680px;
+            text-align: center;
+          "
+        >
+          <div class="node-title">Effizienz prüfen</div>
+          <div class="node-sub">
+            Passt der Aufwand zum gewünschten Stundensatz? Was trägt nicht zum
+            Ergebnis bei – egal ob On Track oder Off Track → streichen,
+            reduzieren oder zurückstellen.
+          </div>
+        </div>
+
+        <!-- ===== CONVERGENCE: CENTER ===== -->
+
+        <div
+          class="node n-principle"
+          id="principle"
+          style="
+            left: 2430px;
+            top: 3060px;
+            max-width: 680px;
+            min-width: 680px;
+            text-align: center;
+          "
+        >
+          <div class="node-title" style="font-size: 15px">
+            ★ Begründungspflicht
+          </div>
+          <div class="node-sub" style="opacity: 0.85">
+            Jede Maßnahme und jedes einzelne Content Piece datenseitig
+            begründen: Warum diese Initiative? Warum diese Content Pieces?
+            Worauf zahlt jedes einzelne ein? Was ist das erwartete Ergebnis?
+            Welche Daten stützen die Auswahl?
+          </div>
+        </div>
+
+        <div
+          class="node n-purple"
+          id="confirm-revise"
+          style="
+            left: 2520px;
+            top: 3210px;
+            max-width: 500px;
+            min-width: 500px;
+            text-align: center;
+          "
+        >
+          <div class="node-title">Confirm or Revise</div>
+          <ul class="node-sub" style="text-align: left">
+            <li>
+              <strong>Confirm:</strong> Maßnahme/Content Piece passt – Daten
+              stützen die Entscheidung, weiter so.
+            </li>
+            <li>
+              <strong>Revise:</strong> Zahlt nicht ein oder Begründung fehlt →
+              umpriorisieren, ersetzen oder streichen.
+            </li>
+          </ul>
+        </div>
+
+        <div
+          class="node n-neutral"
+          id="close1"
+          style="left: 2560px; top: 3350px; max-width: 420px"
+        >
+          <div class="node-title">Offene Punkte</div>
+          <div class="node-sub">
+            Technische Themen, Organisatorisches, Kundenfragen, Action Items aus
+            letztem Call. Idealerweise ist hier nur noch wenig offen.
+          </div>
+        </div>
+
+        <div
+          class="node n-end"
+          id="close2"
+          style="
+            left: 2620px;
+            top: 3480px;
+            min-width: 300px;
+            border-radius: 12px;
+            text-align: center;
+          "
+        >
+          <div class="node-title">
+            Action Items mit Verantwortlichkeiten & Deadlines
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      const connections = [
+        { from: "s", to: "a1", type: "n" },
+        { from: "a1", to: "d-goal", type: "n" },
+        { from: "d-goal", to: "goal-no", type: "r", label: "Nein" },
+        { from: "d-goal", to: "goal-yes", type: "g", label: "Ja" },
+        { from: "goal-no", to: "d-relevance", type: "n" },
+        { from: "goal-yes", to: "d-relevance", type: "n" },
+        { from: "d-relevance", to: "rel-no", type: "r", label: "Nein" },
+        { from: "d-relevance", to: "rel-yes", type: "g", label: "Ja" },
+        { from: "rel-no", to: "d-report", type: "n" },
+        { from: "rel-yes", to: "d-report", type: "n" },
+        { from: "d-report", to: "rep-no", type: "r", label: "Nein" },
+        { from: "d-report", to: "rep-partial", type: "r", label: "Teilweise" },
+        { from: "d-report", to: "rep-yes", type: "g", label: "Ja" },
+        { from: "rep-no", to: "d-track", type: "n" },
+        { from: "rep-partial", to: "d-track", type: "n" },
+        { from: "rep-yes", to: "d-track", type: "n" },
+        { from: "d-track", to: "off1", type: "r", label: "Off Track" },
+        { from: "d-track", to: "on1", type: "g", label: "On Track" },
+        // Off Track path
+        { from: "off1", to: "off2", type: "n" },
+        { from: "off2", to: "off-d1", type: "n" },
+        { from: "off-d1", to: "off4", type: "r", label: "Nein" },
+        { from: "off-d1", to: "off3", type: "g", label: "Ja, braucht Zeit" },
+        { from: "off4", to: "off5", type: "n" },
+        { from: "off3", to: "off5", type: "n" },
+        { from: "off5", to: "on6", type: "n" },
+        // On Track path
+        { from: "on1", to: "on-d0", type: "n" },
+        { from: "on-d0", to: "on-attr-no", type: "r", label: "Nein / Unklar" },
+        { from: "on-d0", to: "on-attr-yes", type: "g", label: "Ja" },
+        { from: "on-attr-no", to: "on2", type: "n" },
+        { from: "on-attr-yes", to: "on2", type: "n" },
+        { from: "on2", to: "on-d1", type: "n" },
+        { from: "on-d1", to: "on4", type: "r", label: "Nein" },
+        { from: "on-d1", to: "on3", type: "g", label: "Ja" },
+        { from: "on4", to: "on5", type: "n" },
+        { from: "on3", to: "on5", type: "n" },
+        { from: "on5", to: "on6", type: "n" },
+        { from: "on6", to: "principle", type: "n" },
+        // Convergence
+        { from: "principle", to: "confirm-revise", type: "n" },
+        { from: "confirm-revise", to: "close1", type: "n" },
+        { from: "close1", to: "close2", type: "n" },
+      ];
+
+      function gc(id) {
+        const el = document.getElementById(id);
+        if (!el) return null;
+        return {
+          cx: el.offsetLeft + el.offsetWidth / 2,
+          cy: el.offsetTop + el.offsetHeight / 2,
+          t: el.offsetTop,
+          b: el.offsetTop + el.offsetHeight,
+          l: el.offsetLeft,
+          r: el.offsetLeft + el.offsetWidth,
+        };
+      }
+
+      function draw() {
+        const svg = document.getElementById("svgLines");
+        while (svg.children.length > 1) svg.removeChild(svg.lastChild);
+        connections.forEach((c) => {
+          const f = gc(c.from),
+            t = gc(c.to);
+          if (!f || !t) return;
+          const x1 = f.cx,
+            y1 = f.b,
+            x2 = t.cx,
+            y2 = t.t;
+          const my = (y1 + y2) / 2;
+          const d =
+            Math.abs(x1 - x2) < 5
+              ? `M${x1} ${y1} L${x2} ${y2}`
+              : `M${x1} ${y1} C${x1} ${my},${x2} ${my},${x2} ${y2}`;
+          const path = document.createElementNS(
+            "http://www.w3.org/2000/svg",
+            "path",
+          );
+          path.setAttribute("d", d);
+          path.setAttribute("fill", "none");
+          const col =
+            c.type === "g" ? "#7a9c59" : c.type === "r" ? "#e31f11" : "#c4b5e8";
+          const w = c.type === "n" ? 1.5 : 2.5;
+          const mk =
+            c.type === "g"
+              ? "url(#aGr)"
+              : c.type === "r"
+                ? "url(#aR)"
+                : "url(#aG)";
+          path.setAttribute("stroke", col);
+          path.setAttribute("stroke-width", w);
+          path.setAttribute("marker-end", mk);
+          svg.appendChild(path);
+          if (c.label) {
+            const lx = (x1 + x2) / 2,
+              ly = my - 2,
+              bw = c.label.length * 7 + 14;
+            const rect = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "rect",
+            );
+            rect.setAttribute("x", lx - bw / 2);
+            rect.setAttribute("y", ly - 9);
+            rect.setAttribute("width", bw);
+            rect.setAttribute("height", 18);
+            rect.setAttribute("fill", "white");
+            rect.setAttribute("rx", "9");
+            svg.appendChild(rect);
+            const txt = document.createElementNS(
+              "http://www.w3.org/2000/svg",
+              "text",
+            );
+            txt.setAttribute("x", lx);
+            txt.setAttribute("y", ly);
+            txt.setAttribute("class", "edge-label");
+            txt.setAttribute("fill", col === "#c4b5e8" ? "#7b55f4" : col);
+            txt.textContent = c.label;
+            svg.appendChild(txt);
+          }
+        });
+      }
+
+      let scale = 0.8;
+      const container = document.getElementById("container");
+      const viewport = document.getElementById("viewport");
+      function apply() {
+        container.style.transform = `scale(${scale})`;
+        container.style.transformOrigin = "0 0";
+        document.getElementById("zoomLevel").textContent =
+          Math.round(scale * 100) + "%";
+      }
+      function zoomIn() {
+        scale = Math.min(scale + 0.1, 2);
+        apply();
+        draw();
+      }
+      function zoomOut() {
+        scale = Math.max(scale - 0.1, 0.2);
+        apply();
+        draw();
+      }
+      function centerView() {
+        scale = 0.8;
+        apply();
+        const scaledWidth = 5400 * scale;
+        viewport.scrollLeft = Math.max(
+          0,
+          (scaledWidth - viewport.clientWidth) / 2,
+        );
+        viewport.scrollTop = 0;
+      }
+      function resetView() {
+        centerView();
+        draw();
+      }
+      viewport.addEventListener(
+        "wheel",
+        (e) => {
+          if (e.ctrlKey || e.metaKey) {
+            e.preventDefault();
+            scale = Math.max(
+              0.2,
+              Math.min(2, scale + (e.deltaY > 0 ? -0.05 : 0.05)),
+            );
+            apply();
+            draw();
+          }
+        },
+        { passive: false },
+      );
+      // Dynamically position ALL nodes based on actual rendered heights
+      function positionAll() {
+        const GAP = 40;
+
+        function pos(id, top) {
+          const el = document.getElementById(id);
+          if (!el) return top;
+          el.style.top = top + "px";
+          return top + el.offsetHeight;
+        }
+
+        function posBranch(ids, top) {
+          let maxBottom = top;
+          ids.forEach((id) => {
+            maxBottom = Math.max(maxBottom, pos(id, top));
+          });
+          return maxBottom;
+        }
+
+        // ── Center column ──────────────────────────────────────────────
+        let y = pos("s", 100) + GAP;
+        y = pos("a1", y) + GAP;
+        y = pos("d-goal", y) + GAP;
+        y = posBranch(["goal-no", "goal-yes"], y) + GAP;
+        y = pos("d-relevance", y) + GAP;
+        y = posBranch(["rel-no", "rel-yes"], y) + GAP;
+        y = pos("d-report", y) + GAP;
+        y = posBranch(["rep-no", "rep-partial", "rep-yes"], y) + GAP;
+        y = pos("d-track", y) + GAP;
+
+        const trackBottom = y;
+
+        // ── Off-track path ─────────────────────────────────────────────
+        let offY = trackBottom;
+        offY = pos("off1", offY) + GAP;
+        offY = pos("off2", offY) + GAP;
+        offY = pos("off-d1", offY) + GAP;
+        offY = posBranch(["off4", "off3"], offY) + GAP;
+        offY = pos("off5", offY) + GAP;
+
+        // ── On-track path ──────────────────────────────────────────────
+        let onY = trackBottom;
+        onY = pos("on1", onY) + GAP;
+        onY = pos("on-d0", onY) + GAP;
+        onY = posBranch(["on-attr-no", "on-attr-yes"], onY) + GAP;
+        onY = pos("on2", onY) + GAP;
+        onY = pos("on-d1", onY) + GAP;
+        onY = posBranch(["on4", "on3"], onY) + GAP;
+        onY = pos("on5", onY) + GAP;
+
+        // ── Convergence (after both paths finish) ──────────────────────
+        let cy = Math.max(offY, onY);
+        cy = pos("on6", cy) + GAP;
+        cy = pos("principle", cy) + GAP;
+        cy = pos("confirm-revise", cy) + GAP;
+        cy = pos("close1", cy) + GAP;
+        cy = pos("close2", cy) + GAP;
+
+        // Grow container to fit all content
+        container.style.height = cy + 200 + "px";
+      }
+
+      apply();
+      setTimeout(() => {
+        positionAll();
+        centerView();
+        draw();
+      }, 80);
+      window.addEventListener("resize", () => {
+        positionAll();
+        draw();
+      });
+    </script>
+  </body>
+</html>
